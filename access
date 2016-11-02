@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [[ $1 == int ]] || [[ $1 == stag ]] || [[ $1 == appbuild ]] || [[ $1 == infra ]] || [[ $1 == dev ]] 
+then
+echo $1
+cer=$(request_cert   -e $1 --valid-before "2h5m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
+echo $cer
+sign_cert   --environment $1 $cer  <<< yes 
+get_cert   --environment $1  $cer
+elif [[ $1 == uat ]] || [[ $1 == prod ]]
+then
+echo $1
+cer=$(request_cert   -e $1 --valid-before "0h30m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
+echo $cer
+sign_cert   --environment $1 $cer  <<< yes               
+get_cert   --environment $1  $cer
+else
+echo "Enter the valid ENV....."
+fi
