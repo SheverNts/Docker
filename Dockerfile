@@ -1,4 +1,4 @@
-#FROM dockertr.es.ad.adp.com/ohcm_devops/centos:7-0008-51aadd49
+
 FROM centos
 COPY yum.conf /etc/
 RUN yum install epel* -y && yum clean all
