@@ -1,19 +1,36 @@
 #!/bin/bash
 
-if [[ $1 == int ]] || [[ $1 == stag ]] || [[ $1 == appbuild ]] || [[ $1 == infra ]] || [[ $1 == dev ]] 
+a=( "$@" )
+for (( i=0; i<=$(expr "$#" - 1); i++ ))
+do
+echo ${a[$i]}
+
+if [[ "${a[$i]}" == int ]] || [[ ${a[$i]} == stag ]] || [[ ${a[$i]} == infra ]] || [[ ${a[$i]} == dev ]] || [[ ${a[$i]} == old ]]
 then
 echo $1
-cer=$(request_cert   -e $1 --valid-before "2h5m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
+cer=$(request_cert   -e ${a[$i]} --valid-before "2h5m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
 echo $cer
-sign_cert   --environment $1 $cer  <<< yes 
-get_cert   --environment $1  $cer
-elif [[ $1 == uat ]] || [[ $1 == prod ]]
+sign_cert   --environment ${a[$i]}  $cer  <<< yes
+get_cert   --environment ${a[$i]}  $cer
+clear
+elif [[ ${a[$i]} == uat ]] || [[ ${a[$i]} == prod ]] || [[ ${a[$i]} == appbuild ]]
 then
-echo $1
-cer=$(request_cert   -e $1 --valid-before "0h30m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
+echo ${a[$i]}
+cer=$(request_cert   -e ${a[$i]} --valid-before "0h30m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
 echo $cer
-sign_cert   --environment $1 $cer  <<< yes               
-get_cert   --environment $1  $cer
+sign_cert   --environment ${a[$i]} $cer  <<< yes
+get_cert   --environment ${a[$i]}  $cer
+clear
+elif [[ ${a[$i]} == dev ]]
+then
+echo ${a[$i]}
+cer=$(request_cert   -e ${a[$i]} --valid-before "20h0m0s"   --reason 'access' | cut -d ":" -f2 | tr -d [" "] )
+echo $cer
+sign_cert   --environment ${a[$i]} $cer  <<< yes
+get_cert   --environment ${a[$i]}  $cer
+clear
 else
 echo "Enter the valid ENV....."
 fi
+
+done
