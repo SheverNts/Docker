@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# remove docker containers with status of "Exited" or "Created"; also remove associated docker managed volumes for these containers
+docker rm -v $(docker ps -f status=exited -f status=created -qa)
+
+# try to remove all volumes (will fail if in use by a container)
+docker volume rm $(docker volume ls -q)
+
+# try to remove all docker images by their full image name (will fail if in use)
+#docker rmi $(docker images -q)
+
+# Better option
+# remove dandling images first
+
+#docker rmi  $(docker images -q -f "dangling=true")
+
+# create temporary files
+IMAGES=$(mktemp)
+CONTAINERS=$(mktemp)
+
+
+# get a list of all image on the system and write to temp file
+#docker images | grep -v ^REPOSITORY | awk '{print $1":"$2}' | sort > ${IMAGES}
+
+docker images --format '{{.Repository}}:{{.Tag}}#{{.CreatedSince}}' | grep  'weeks\|months\|year\|years' | awk -F "#" '{print $1}' > ${IMAGES}
+
+docker images --format '{{.Repository}}:{{.Tag}}#{{.CreatedSince}}' | grep days | while read iid ;
+do
+if [[ $(echo $iid | cut -d : -f2 | tr -d ["days"]) > 1 ]] ;
+then
+echo $awk -F "#" {print $1}; >> ${IMAGES}
+fi
+done
+
+# get a list of all images used by existing containers on the system and write to temp file
+#docker ps -a | grep -v ^'CONTAINER ID' | awk '{print $2}' | sort > ${CONTAINERS}
+docker ps --format "{{.ID}}#{{.Image}}" | awk -F "#" '{print $2}'  | sort > ${CONTAINERS}
+# compare the two lists to see which images are not used for an existing container
+sort ${IMAGES} -o ${IMAGES}
+comm -13 ${CONTAINERS} ${IMAGES} | xargs -n1 docker rmi
+
+# remove the temp files
+rm ${IMAGES} ${CONTAINERS}
