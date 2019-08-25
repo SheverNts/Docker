@@ -10,5 +10,5 @@ COPY ./files/supervisord/conf.d/* /supervisord/conf.d/
 COPY ./files/supervisord/supervisord.conf /supervisord/supervisord.conf
 COPY ./bin/start.sh /bin/
 COPY ./files/nginx/*.conf /etc/nginx/conf.d/
-COPY ./files/nginx/html/* /var/www/html/
+COPY ./files/nginx/html/ /var/www/html/
 CMD sh /bin/start.sh
